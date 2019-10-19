@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 public class Deck : MonoBehaviour {
 
-[Header("Set in Inspector")]
+    [Header("Set in Inspector")]
+    public bool startFaceUp = false;
 	//Suits
 	public Sprite suitClub;
 	public Sprite suitDiamond;
@@ -252,6 +253,66 @@ public class Deck : MonoBehaviour {
 		} // for all the Cardnames	
 	} // makeCards
 	
+    public void MakeCard(int cNum)    {
+        GameObject cgo = Instantiate(prefabCard) as GameObject;
+
+        cgo.transform.parent = deckAnchor;
+        Card card = cgo.GetComponent < Card >();
+        cgo.transform.localPosition = new Vector3((cNum % 3) * 3, cNum / 13 * 4, 0);
+        card.name = cardNames[cNum];
+        card.suit = card.name[0].ToString();
+        card.rank = int.Parse(card.name.Substring(1));
+        if (card.suit == "D" || card.suit == "H"){
+            card.colS = "Red";
+            card.color = Color.red;
+        }
+
+        card.def = GetCardDefinitionByRank(card.rank);
+        AddDecorators(card);
+        AddPips(card);
+        AddFace(card);
+
+        return card;
+    }
+
+    private Sprite          _tSp = null;
+    private GameObject      _tGO = null;
+    private SpriteRenderer  _tSR = null;
+
+    private void AddDecorators(Card card) {
+        foreach (Decorator deco in decorators){
+            if(deco.type == suit) {
+                _tGO = Instantiate(prefabSprite) as GameObject;
+                _tSR = _tGO.GetComponent<SpriteRenderer>();
+                _tSR.sprite = dictSuits[card.suit];
+
+             } else  {
+                _tGO = Instantiate(prefabSprite) as GameObject;
+                _tSR = _tGO.GetComponent<SpriteRenderer>();
+                _tSp = rankSprites[card.rank];
+                _tSR.sprite = _tSp;
+                _tSR.color = card.color;
+            }
+            _tSR.sortingOrder = 1;
+            _tGO.transform.SetParent(card.transform);
+            _tGO.transform.localPosition = deco.loc;
+
+            if (deco.flip){
+                _tGO.transform.rotation = Quaternion.Euler(0, 0, 180);
+            }
+            
+            if(deco.scale != 1){
+                _tGO.transform.localScale = Vector3.one * deco.scale;
+            }
+            _tGO.name = deco.type;
+            card.decoGOs.Add(_tGO);
+        }
+    }
+
+    private void AddPips(Card card){
+
+    }
+
 	//Find the proper face card
 	public Sprite GetFace(string faceS) {
 		foreach (Sprite tS in faceSprites) {
@@ -262,7 +323,7 @@ public class Deck : MonoBehaviour {
 		return (null);  // couldn't find the sprite (should never reach this line)
 	 }// getFace 
 
-	 static public void Shuffle(ref List<Card> oCards)
+	static public void Shuffle(ref List<Card> oCards)
 	 {
 	 	List<Card> tCards = new List<Card>();
 
@@ -284,5 +345,9 @@ public class Deck : MonoBehaviour {
 
 	 }
 
+    public void addBack(Card card) {
+        //Add Card back
 
+        
+    }
 } // Deck class
